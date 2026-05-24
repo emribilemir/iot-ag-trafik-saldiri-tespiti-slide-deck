@@ -3429,10 +3429,18 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
               requestAnimationFrame(step);
             } else {
               this.scrollElement.scrollTop = targetScroll;
-              setTimeout(() => {
+              
+              // Safari fix: wait a frame, restore snap, force layout, and explicitly set scroll without animation
+              requestAnimationFrame(() => {
                 this.scrollElement.style.scrollSnapType = '';
+                
+                // Force synchronous layout recalculation so Safari registers the snap change
+                void this.scrollElement.offsetHeight;
+                
+                // Instantly apply target scroll with behavior: 'auto' to override Safari's automatic micro-snap animation
+                this.scrollElement.scrollTo({ top: targetScroll, behavior: 'auto' });
                 this.isKeyNavigating = false;
-              }, 50);
+              });
             }
           };
           requestAnimationFrame(step);
