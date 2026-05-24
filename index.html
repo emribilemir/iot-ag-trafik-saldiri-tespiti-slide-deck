@@ -849,6 +849,41 @@
         width: 100% !important;
         height: 100% !important;
         display: block;
+        z-index: 1;
+      }
+
+      .orbit-label-layer {
+        position: absolute;
+        inset: 0;
+        z-index: 3;
+        overflow: visible;
+        pointer-events: none;
+      }
+
+      .orbit-label {
+        position: absolute;
+        left: 0;
+        top: 0;
+        color: rgba(220,253,255,0.96);
+        font-family: var(--font-mono);
+        font-weight: 700;
+        font-size: clamp(0.68rem, 1.05vw, 0.95rem);
+        line-height: 1;
+        white-space: nowrap;
+        text-shadow:
+          0 0 0.35rem currentColor,
+          0 0 0.85rem rgba(125,223,214,0.32),
+          0 0 0.18rem rgba(5,10,17,0.92);
+        transform: translate(-50%, 0);
+        will-change: left, top, transform;
+      }
+
+      .orbit-label.hot {
+        color: rgba(255,137,173,0.98);
+        text-shadow:
+          0 0 0.35rem currentColor,
+          0 0 0.95rem rgba(255,43,110,0.36),
+          0 0 0.18rem rgba(5,10,17,0.92);
       }
 
       .orbit-fallback {
@@ -3069,24 +3104,7 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
             return new THREE.CanvasTexture(canvas);
           };
 
-          const makeLabelTexture = (label, textColor) => {
-            const canvas = document.createElement("canvas");
-            canvas.width = 1024;
-            canvas.height = 220;
-            const ctx = canvas.getContext("2d");
-            ctx.font = "700 76px JetBrains Mono, Menlo, Monaco, Consolas, monospace";
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.fillStyle = textColor;
-            ctx.shadowColor = textColor;
-            ctx.shadowBlur = 10;
-            ctx.fillText(label, canvas.width / 2, canvas.height / 2);
-            const texture = new THREE.CanvasTexture(canvas);
-            texture.userData = { aspect: canvas.height / canvas.width };
-            return texture;
-          };
-
-          const makeNodeObject = (label, nodeColor, textColor, worldPos, worldScale) => {
+          const makeNodeObject = (nodeColor, worldPos, worldScale) => {
             const group = new THREE.Group();
             group.position.copy(worldPos);
             group.userData.baseScale = worldScale;
@@ -3103,24 +3121,7 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
             pentagon.renderOrder = 10;
             group.add(pentagon);
 
-            const labelTexture = makeLabelTexture(label, textColor);
-            const labelMaterial = new THREE.SpriteMaterial({
-              map: labelTexture,
-              transparent: true,
-              depthWrite: false,
-              depthTest: false,
-              opacity: 0.98
-            });
-            const labelSprite = new THREE.Sprite(labelMaterial);
-            labelSprite.position.set(0, -1.08, 0.06);
-            const labelWidth = worldScale * 1.02;
-            const labelHeight = labelWidth * labelTexture.userData.aspect;
-
             group.userData.pentagon = pentagon;
-            group.userData.labelTexture = labelTexture;
-            group.userData.labelMaterial = labelMaterial;
-            group.userData.labelScale = new THREE.Vector2(labelWidth, labelHeight);
-            group.userData.labelOffset = new THREE.Vector3(0, -0.9 * worldScale, 0);
             group.userData.label = null;
             return group;
           };
@@ -3216,17 +3217,16 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
             { id: "dns", nodeColor: "#76f8ff", textColor: "#dcfdff", base: new THREE.Vector3(-0.55, -1.55, -1.45), scale: 2.55 }
           ];
           const nodeMap = {};
-          const labelLayer = new THREE.Group();
-          labelLayer.renderOrder = 80;
-          scene.add(labelLayer);
+          const labelLayer = document.createElement("div");
+          labelLayer.className = "orbit-label-layer";
+          container.appendChild(labelLayer);
           nodeDefs.forEach((def) => {
-            const object = makeNodeObject(def.id, def.nodeColor, def.textColor, def.base, def.scale);
+            const object = makeNodeObject(def.nodeColor, def.base, def.scale);
             scene.add(object);
-            const label = new THREE.Sprite(object.userData.labelMaterial);
-            label.scale.set(object.userData.labelScale.x, object.userData.labelScale.y, 1);
-            label.renderOrder = 80;
-            label.frustumCulled = false;
-            labelLayer.add(label);
+            const label = document.createElement("span");
+            label.className = `orbit-label${def.id === "botnet" ? " hot" : ""}`;
+            label.textContent = def.id;
+            labelLayer.appendChild(label);
             object.userData.label = label;
             nodeMap[def.id] = { base: def.base.clone(), object };
           });
@@ -3244,17 +3244,22 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
               const rotated = node.base.clone().applyAxisAngle(zAxis, angle);
               node.object.position.copy(rotated);
               node.object.userData.pentagon.quaternion.copy(camera.quaternion);
-              node.object.userData.label.quaternion.copy(camera.quaternion);
               const pulse = 1 + Math.sin(elapsed * 1.4 + node.base.z) * 0.012;
               const scale = node.object.userData.baseScale;
               node.object.userData.pentagon.scale.set(scale * pulse, scale * pulse, 1);
-              const labelPosition = rotated.clone().add(new THREE.Vector3(0, -0.78 * scale, 0.18));
-              node.object.userData.label.position.copy(labelPosition);
-              node.object.userData.label.scale.set(
-                node.object.userData.labelScale.x * pulse,
-                node.object.userData.labelScale.y * pulse,
-                1
-              );
+              const labelWorld = rotated.clone().add(new THREE.Vector3(0, -0.68 * scale, 0.2));
+              const projected = labelWorld.project(camera);
+              const width = container.clientWidth || 1;
+              const height = container.clientHeight || 1;
+              const x = (projected.x * 0.5 + 0.5) * width;
+              const y = (-projected.y * 0.5 + 0.5) * height;
+              const safeX = Math.max(28, Math.min(width - 28, x));
+              const safeY = Math.max(12, Math.min(height - 34, y));
+              const depthScale = Math.max(0.84, Math.min(1.14, 0.96 + rotated.z * 0.025));
+              node.object.userData.label.style.left = `${safeX}px`;
+              node.object.userData.label.style.top = `${safeY}px`;
+              node.object.userData.label.style.opacity = projected.z > 1 ? "0" : "1";
+              node.object.userData.label.style.transform = `translate(-50%, 0) scale(${depthScale})`;
             });
           };
 
