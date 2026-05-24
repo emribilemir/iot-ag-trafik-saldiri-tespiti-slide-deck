@@ -2766,7 +2766,7 @@
             <h2 class="reveal delay-1">Saldırı akışı baskın; sonuçlar hata türleriyle okunmalı.</h2>
             <p class="reveal delay-2">Model sonucunu yorumlarken sınıf dengesi arka plandaki en önemli bağlam.</p>
             <div class="balance-ratio reveal delay-3">
-              <b data-ratio-count="369" data-suffix="x">0x</b>
+              <b data-ratio-count="369" data-suffix="x">1x</b>
               <span>saldırı / normal flow oranı</span>
             </div>
           </div>
@@ -2803,7 +2803,7 @@
             <div class="distribution-stats">
               <div class="dist-stat attack"><span>Saldırı flow</span><b>236,938</b></div>
               <div class="dist-stat normal"><span>Normal flow</span><b>642</b></div>
-              <div class="dist-stat"><span>Oran</span><b>369x</b></div>
+              <div class="dist-stat"><span>Oran</span><b data-ratio-count="369" data-suffix="x">1x</b></div>
             </div>
           </div>
         </div>
@@ -3456,8 +3456,18 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
             counter.dataset.done = "true";
             const target = Number(counter.dataset.ratioCount);
             const suffix = counter.dataset.suffix || "";
+            
             setTimeout(() => {
-              counter.textContent = `${target}${suffix}`;
+              const start = performance.now();
+              const duration = 1500;
+              const tick = (now) => {
+                const progress = Math.min(1, (now - start) / duration);
+                const eased = this.easeOutQuint(progress);
+                const current = Math.round(1 + (target - 1) * eased);
+                counter.textContent = `${current}${suffix}`;
+                if (progress < 1) requestAnimationFrame(tick);
+              };
+              requestAnimationFrame(tick);
             }, 240);
           });
         }
