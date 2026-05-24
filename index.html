@@ -677,27 +677,162 @@
 
       .node {
         position: absolute;
-        width: clamp(3.1rem, 6vw, 5rem);
-        height: clamp(3.1rem, 6vw, 5rem);
-        border: 1px solid var(--line-strong);
-        display: grid;
-        place-items: center;
-        color: var(--text-primary);
+        width: clamp(5.3rem, 8.4vw, 7.1rem);
+        height: clamp(5.5rem, 9vw, 7.7rem);
+        border: 0;
+        display: block;
+        color: var(--accent);
         font-family: var(--font-mono);
         font-size: var(--small-size);
-        background: rgba(6,11,18,0.78);
+        background: transparent;
+        perspective: 520px;
+        filter: drop-shadow(0 1rem 1.1rem rgba(0,0,0,0.28));
+        isolation: isolate;
       }
 
       .node.hot {
-        border-color: rgba(255,63,180,0.78);
         color: var(--accent-magenta);
-        box-shadow: 0 0 clamp(1rem, 2vw, 2rem) rgba(255,63,180,0.28);
       }
 
-      .node-camera { left: 10%; top: 18%; }
-      .node-hub { left: 36%; top: 58%; }
-      .node-botnet { left: 66%; top: 22%; }
-      .node-dns { left: 78%; top: 66%; }
+      .node::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        bottom: clamp(0.85rem, 1.5vh, 1.15rem);
+        width: 66%;
+        height: 0.45rem;
+        border-radius: 50%;
+        transform: translateX(-50%);
+        background: radial-gradient(ellipse, currentColor 0%, transparent 68%);
+        opacity: 0.18;
+        filter: blur(0.2rem);
+        z-index: -1;
+      }
+
+      .node-shape {
+        position: absolute;
+        left: 50%;
+        top: 41%;
+        transform-style: preserve-3d;
+      }
+
+      .node-label {
+        position: absolute;
+        left: 50%;
+        bottom: clamp(0.1rem, 0.45vh, 0.32rem);
+        transform: translateX(-50%);
+        color: currentColor;
+        font-size: clamp(0.68rem, 1.05vw, 0.92rem);
+        text-shadow: 0 0 clamp(0.55rem, 1.2vw, 1rem) currentColor;
+      }
+
+      .node-shape.cube {
+        width: clamp(2.8rem, 4.7vw, 4rem);
+        height: clamp(2.8rem, 4.7vw, 4rem);
+        border-radius: clamp(0.38rem, 0.7vw, 0.55rem);
+        transform: translate(-50%, -50%) rotateX(58deg) rotateZ(38deg);
+        background:
+          linear-gradient(135deg, rgba(255,255,255,0.82), transparent 28%),
+          linear-gradient(145deg, currentColor, rgba(47, 227, 232, 0.56));
+        box-shadow:
+          inset -0.55rem -0.7rem 0.9rem rgba(0,0,0,0.24),
+          inset 0.35rem 0.35rem 0.85rem rgba(255,255,255,0.32),
+          0 0 1.3rem color-mix(in srgb, currentColor 42%, transparent);
+      }
+
+      .node-shape.cube::before,
+      .node-shape.cube::after {
+        content: "";
+        position: absolute;
+        border-radius: inherit;
+        background: currentColor;
+        opacity: 0.42;
+      }
+
+      .node-shape.cube::before {
+        inset: 58% 6% -28% 8%;
+        transform: skewX(-34deg);
+        filter: brightness(0.62);
+      }
+
+      .node-shape.cube::after {
+        inset: 8% -24% 10% 66%;
+        transform: skewY(-42deg);
+        filter: brightness(0.72);
+      }
+
+      .camera-shape {
+        width: clamp(3.35rem, 5.2vw, 4.6rem);
+        height: clamp(2.2rem, 3.35vw, 3rem);
+        border-radius: clamp(0.4rem, 0.75vw, 0.62rem);
+        transform: translate(-50%, -50%) rotateX(54deg) rotateZ(-18deg);
+        background:
+          radial-gradient(circle at 78% 42%, rgba(238,251,255,0.98) 0 12%, rgba(6,11,18,0.82) 13% 25%, transparent 26%),
+          linear-gradient(135deg, rgba(255,255,255,0.78), transparent 30%),
+          linear-gradient(145deg, rgba(86,245,248,0.96), rgba(23,150,177,0.78));
+        box-shadow:
+          inset -0.45rem -0.55rem 0.8rem rgba(0,0,0,0.24),
+          0 0 1.25rem rgba(125,223,214,0.34);
+      }
+
+      .camera-shape::before {
+        content: "";
+        position: absolute;
+        left: 12%;
+        bottom: -34%;
+        width: 42%;
+        height: 24%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, rgba(238,251,255,0.72), rgba(125,223,214,0.38));
+        transform: rotateZ(18deg);
+        filter: brightness(0.9);
+      }
+
+      .camera-shape::after {
+        content: "";
+        position: absolute;
+        right: -16%;
+        top: 30%;
+        width: 28%;
+        height: 38%;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(238,251,255,0.92), rgba(6,11,18,0.86) 44%, rgba(125,223,214,0.5));
+        box-shadow: 0 0 0.7rem rgba(125,223,214,0.36);
+      }
+
+      .node-shape.hub-shape {
+        color: var(--accent);
+      }
+
+      .node-shape.hub-shape::after {
+        box-shadow:
+          -0.55rem -0.25rem 0 -0.22rem rgba(238,251,255,0.92),
+          0 -0.25rem 0 -0.22rem rgba(238,251,255,0.88),
+          0.55rem -0.25rem 0 -0.22rem rgba(238,251,255,0.92);
+      }
+
+      .node-shape.botnet-shape {
+        color: var(--accent-magenta);
+        transform: translate(-50%, -50%) rotateX(55deg) rotateZ(-34deg) scale(1.04);
+      }
+
+      .node-shape.botnet-shape::before {
+        opacity: 0.54;
+      }
+
+      .node-shape.dns-shape {
+        color: var(--accent);
+        transform: translate(-50%, -50%) rotateX(57deg) rotateZ(28deg) scale(0.96);
+      }
+
+      .node-shape.dns-shape::after {
+        opacity: 0.62;
+      }
+
+      .node-camera { left: 9%; top: 15%; }
+      .node-hub { left: 35%; top: 55%; }
+      .node-botnet { left: 65%; top: 19%; }
+      .node-dns { left: 77%; top: 63%; }
 
       /* ===========================================
          SLIDE 03 DATASET
@@ -1738,8 +1873,8 @@
         display: inline-block;
         font-size: clamp(1.4rem, 3vw, 2.55rem);
         transform: translateX(-116%);
-        transition: transform 860ms var(--ease-out-expo);
-        transition-delay: 0.38s;
+        transition: transform 1550ms var(--ease-out-expo);
+        transition-delay: 0.48s;
       }
 
       .slide.visible .result-kpis .metric b {
@@ -2363,10 +2498,22 @@
               <line x1="42" y1="66" x2="70" y2="33" marker-end="url(#arrowBlue)"></line>
               <line class="hot" x1="72" y1="34" x2="83" y2="76" marker-end="url(#arrowHot)"></line>
             </svg>
-            <div class="node node-camera">kamera</div>
-            <div class="node node-hub">hub</div>
-            <div class="node hot node-botnet">botnet</div>
-            <div class="node node-dns">dns</div>
+            <div class="node node-camera" aria-label="kamera">
+              <span class="node-shape camera-shape" aria-hidden="true"></span>
+              <span class="node-label">kamera</span>
+            </div>
+            <div class="node node-hub" aria-label="hub">
+              <span class="node-shape cube hub-shape" aria-hidden="true"></span>
+              <span class="node-label">hub</span>
+            </div>
+            <div class="node hot node-botnet" aria-label="botnet">
+              <span class="node-shape cube botnet-shape" aria-hidden="true"></span>
+              <span class="node-label">botnet</span>
+            </div>
+            <div class="node node-dns" aria-label="dns">
+              <span class="node-shape cube dns-shape" aria-hidden="true"></span>
+              <span class="node-label">dns</span>
+            </div>
           </div>
         </div>
       </div>
@@ -2985,12 +3132,26 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
           const rows = Array.from(element.querySelectorAll(".code-row"));
           await new Promise((resolve) => requestAnimationFrame(resolve));
           rows.forEach((row) => row.classList.add("visible"));
-          const revealDuration = Math.min(rows.length * 14, 1400) + 360;
-          await new Promise((resolve) => setTimeout(resolve, revealDuration));
+          await new Promise((resolve) => requestAnimationFrame(resolve));
+
+          const maxScroll = Math.max(0, viewport.scrollHeight - viewport.clientHeight);
+          const start = performance.now();
+          const duration = 2200;
+          await new Promise((resolve) => {
+            const step = (now) => {
+              const progress = Math.min(1, (now - start) / duration);
+              const eased = this.easeOutCubic(progress);
+              viewport.scrollTop = maxScroll * eased;
+              if (progress < 1) requestAnimationFrame(step);
+              else resolve();
+            };
+            requestAnimationFrame(step);
+          });
 
           rows.forEach((row) => row.classList.add("visible"));
           element.classList.add("done");
           await new Promise((resolve) => requestAnimationFrame(resolve));
+          viewport.scrollTop = Math.max(0, viewport.scrollHeight - viewport.clientHeight);
           const button = document.querySelector("[data-run-button]");
           if (button && !this.runStarted) {
             button.disabled = false;
