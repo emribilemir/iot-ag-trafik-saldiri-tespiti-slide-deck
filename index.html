@@ -834,6 +834,43 @@
       .node-botnet { left: 65%; top: 19%; }
       .node-dns { left: 77%; top: 63%; }
 
+      .orbit-network-scene {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 54% 46%, rgba(15,40,66,0.38) 0%, rgba(7,20,39,0.24) 42%, transparent 72%);
+      }
+
+      .orbit-network-scene canvas {
+        position: absolute;
+        inset: 0;
+        width: 100% !important;
+        height: 100% !important;
+        display: block;
+      }
+
+      .orbit-fallback {
+        position: absolute;
+        inset: 0;
+        opacity: 1;
+        transition: opacity 520ms ease;
+      }
+
+      .orbit-network-scene.three-ready .orbit-fallback {
+        opacity: 0;
+      }
+
+      .orbit-network-scene::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background:
+          linear-gradient(90deg, rgba(5,10,17,0.32), transparent 18%, transparent 82%, rgba(5,10,17,0.22)),
+          radial-gradient(ellipse at 50% 92%, rgba(0,0,0,0.24), transparent 48%);
+      }
+
       /* ===========================================
          SLIDE 03 DATASET
          =========================================== */
@@ -2485,34 +2522,38 @@
             <p class="reveal delay-2">Bu çalışmanın hedefi payload okumadan, bağlantı davranışlarından saldırı sinyalini yakalamak.</p>
           </div>
           <div class="signal-map panel reveal-scale delay-3">
-            <svg class="signal-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-              <defs>
-                <marker id="arrowBlue" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
-                  <path d="M0,0 L7,3.5 L0,7 Z" fill="rgba(122,183,217,0.72)"></path>
-                </marker>
-                <marker id="arrowHot" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
-                  <path d="M0,0 L7,3.5 L0,7 Z" fill="rgba(255,106,183,0.78)"></path>
-                </marker>
-              </defs>
-              <line x1="16" y1="29" x2="40" y2="68" marker-end="url(#arrowBlue)"></line>
-              <line x1="42" y1="66" x2="70" y2="33" marker-end="url(#arrowBlue)"></line>
-              <line class="hot" x1="72" y1="34" x2="83" y2="76" marker-end="url(#arrowHot)"></line>
-            </svg>
-            <div class="node node-camera" aria-label="kamera">
-              <span class="node-shape camera-shape" aria-hidden="true"></span>
-              <span class="node-label">kamera</span>
-            </div>
-            <div class="node node-hub" aria-label="hub">
-              <span class="node-shape cube hub-shape" aria-hidden="true"></span>
-              <span class="node-label">hub</span>
-            </div>
-            <div class="node hot node-botnet" aria-label="botnet">
-              <span class="node-shape cube botnet-shape" aria-hidden="true"></span>
-              <span class="node-label">botnet</span>
-            </div>
-            <div class="node node-dns" aria-label="dns">
-              <span class="node-shape cube dns-shape" aria-hidden="true"></span>
-              <span class="node-label">dns</span>
+            <div class="orbit-network-scene" data-orbit-network>
+              <div class="orbit-fallback" aria-hidden="true">
+                <svg class="signal-lines" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  <defs>
+                    <marker id="arrowBlue" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+                      <path d="M0,0 L7,3.5 L0,7 Z" fill="rgba(122,183,217,0.72)"></path>
+                    </marker>
+                    <marker id="arrowHot" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+                      <path d="M0,0 L7,3.5 L0,7 Z" fill="rgba(255,106,183,0.78)"></path>
+                    </marker>
+                  </defs>
+                  <line x1="16" y1="29" x2="40" y2="68" marker-end="url(#arrowBlue)"></line>
+                  <line x1="42" y1="66" x2="70" y2="33" marker-end="url(#arrowBlue)"></line>
+                  <line class="hot" x1="72" y1="34" x2="83" y2="76" marker-end="url(#arrowHot)"></line>
+                </svg>
+                <div class="node node-camera" aria-label="kamera">
+                  <span class="node-shape camera-shape" aria-hidden="true"></span>
+                  <span class="node-label">kamera</span>
+                </div>
+                <div class="node node-hub" aria-label="hub">
+                  <span class="node-shape cube hub-shape" aria-hidden="true"></span>
+                  <span class="node-label">hub</span>
+                </div>
+                <div class="node hot node-botnet" aria-label="botnet">
+                  <span class="node-shape cube botnet-shape" aria-hidden="true"></span>
+                  <span class="node-label">botnet</span>
+                </div>
+                <div class="node node-dns" aria-label="dns">
+                  <span class="node-shape cube dns-shape" aria-hidden="true"></span>
+                  <span class="node-label">dns</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -2909,6 +2950,8 @@ dist_path = os.path.join(script_dir, 'veri_dagilimi.png')
 plt.savefig(dist_path, dpi=300)
 print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
 
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+
     <script>
       history.scrollRestoration = "manual";
 
@@ -2930,8 +2973,315 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
           this.setupTouchNav();
           this.setupRunButton();
           this.buildDonutArcs();
+          this.initOrbitNetwork();
           setTimeout(() => this.navDotsContainer.classList.add('ready'), 400);
           requestAnimationFrame(() => this.goTo(0, true));
+        }
+
+        initOrbitNetwork() {
+          const container = document.querySelector("[data-orbit-network]");
+          if (!container || !window.THREE) return;
+
+          const scene = new THREE.Scene();
+          scene.fog = new THREE.Fog(0x020812, 18, 42);
+
+          const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+          renderer.domElement.style.pointerEvents = "none";
+          container.appendChild(renderer.domElement);
+
+          const target = new THREE.Vector3(0, 0, 0.35);
+          const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 100);
+          const orbit = { radius: 10.8, azimuth: -Math.PI / 2, polar: 1.08 };
+
+          const updateCamera = () => {
+            const sinPhi = Math.sin(orbit.polar);
+            camera.position.set(
+              target.x + orbit.radius * sinPhi * Math.cos(orbit.azimuth),
+              target.y + orbit.radius * sinPhi * Math.sin(orbit.azimuth),
+              target.z + orbit.radius * Math.cos(orbit.polar)
+            );
+            camera.lookAt(target);
+          };
+
+          scene.add(new THREE.AmbientLight(0xb8f9ff, 0.78));
+
+          const keyLight = new THREE.DirectionalLight(0x8fefff, 0.85);
+          keyLight.position.set(5, -6, 8);
+          scene.add(keyLight);
+
+          const fillLight = new THREE.PointLight(0x39f3ff, 1.0, 18);
+          fillLight.position.set(3, 3, 4);
+          scene.add(fillLight);
+
+          const pinkLight = new THREE.PointLight(0xff2b6e, 1.1, 16);
+          pinkLight.position.set(-4, -2, 4);
+          scene.add(pinkLight);
+
+          const particleGeo = new THREE.BufferGeometry();
+          const particlePositions = [];
+          for (let i = 0; i < 180; i += 1) {
+            particlePositions.push(
+              (Math.random() - 0.5) * 25,
+              (Math.random() - 0.5) * 20,
+              -7 - Math.random() * 16
+            );
+          }
+          particleGeo.setAttribute("position", new THREE.Float32BufferAttribute(particlePositions, 3));
+          scene.add(new THREE.Points(
+            particleGeo,
+            new THREE.PointsMaterial({ color: 0x8cefff, size: 0.04, transparent: true, opacity: 0.13 })
+          ));
+
+          const makePentagonTexture = (nodeColor) => {
+            const canvas = document.createElement("canvas");
+            canvas.width = 512;
+            canvas.height = 512;
+            const ctx = canvas.getContext("2d");
+            const cx = 256;
+            const cy = 238;
+            const r = 88;
+            const halo = ctx.createRadialGradient(cx, cy, 18, cx, cy, 146);
+            halo.addColorStop(0, nodeColor === "#ff2b6e" ? "rgba(255,43,110,0.24)" : "rgba(117,248,255,0.20)");
+            halo.addColorStop(1, "rgba(0,0,0,0)");
+            ctx.fillStyle = halo;
+            ctx.beginPath();
+            ctx.arc(cx, cy, 146, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = nodeColor;
+            ctx.shadowColor = nodeColor;
+            ctx.shadowBlur = 18;
+            ctx.beginPath();
+            for (let i = 0; i < 5; i += 1) {
+              const angle = -Math.PI / 2 + i * Math.PI * 2 / 5;
+              const x = cx + Math.cos(angle) * r;
+              const y = cy + Math.sin(angle) * r;
+              if (i === 0) ctx.moveTo(x, y);
+              else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            ctx.strokeStyle = "rgba(255,255,255,0.28)";
+            ctx.lineWidth = 4;
+            ctx.stroke();
+            return new THREE.CanvasTexture(canvas);
+          };
+
+          const makeLabelTexture = (label, textColor) => {
+            const canvas = document.createElement("canvas");
+            canvas.width = 1024;
+            canvas.height = 220;
+            const ctx = canvas.getContext("2d");
+            ctx.font = "700 76px JetBrains Mono, Menlo, Monaco, Consolas, monospace";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillStyle = textColor;
+            ctx.shadowColor = textColor;
+            ctx.shadowBlur = 10;
+            ctx.fillText(label, canvas.width / 2, canvas.height / 2);
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.userData = { aspect: canvas.height / canvas.width };
+            return texture;
+          };
+
+          const makeNodeObject = (label, nodeColor, textColor, worldPos, worldScale) => {
+            const group = new THREE.Group();
+            group.position.copy(worldPos);
+            group.userData.baseScale = worldScale;
+
+            const pentagonMaterial = new THREE.SpriteMaterial({
+              map: makePentagonTexture(nodeColor),
+              transparent: true,
+              depthWrite: true,
+              depthTest: true,
+              alphaTest: 0.18
+            });
+            const pentagon = new THREE.Sprite(pentagonMaterial);
+            pentagon.scale.set(worldScale, worldScale, 1);
+            pentagon.renderOrder = 10;
+            group.add(pentagon);
+
+            const labelTexture = makeLabelTexture(label, textColor);
+            const labelMaterial = new THREE.SpriteMaterial({
+              map: labelTexture,
+              transparent: true,
+              depthWrite: false,
+              depthTest: false
+            });
+            const labelSprite = new THREE.Sprite(labelMaterial);
+            labelSprite.position.set(0, -0.82, 0);
+            const labelWidth = worldScale * 1.02;
+            labelSprite.scale.set(labelWidth, labelWidth * labelTexture.userData.aspect, 1);
+            labelSprite.renderOrder = 50;
+            group.add(labelSprite);
+
+            group.userData.pentagon = pentagon;
+            group.userData.label = labelSprite;
+            return group;
+          };
+
+          const makeSegmentCylinder = (start, end, colorHex, radius, opacity) => {
+            const direction = new THREE.Vector3().subVectors(end, start);
+            const length = direction.length();
+            const mesh = new THREE.Mesh(
+              new THREE.CylinderGeometry(radius, radius, length, 10, 1, false),
+              new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity, depthWrite: false, depthTest: true })
+            );
+            mesh.position.copy(start).add(end).multiplyScalar(0.5);
+            mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.clone().normalize());
+            mesh.renderOrder = 1;
+            return mesh;
+          };
+
+          const makeDashedLink = (colorHex) => {
+            const group = new THREE.Group();
+            const faint = new THREE.Mesh(
+              new THREE.CylinderGeometry(0.014, 0.014, 1, 8, 1, false),
+              new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.08, depthWrite: false, depthTest: true })
+            );
+            const dashGroup = new THREE.Group();
+            group.add(faint, dashGroup);
+            group.userData = { colorHex, faint, dashGroup, dashLen: 0.34, gapLen: 0.22 };
+            return group;
+          };
+
+          const setCylinderBetween = (mesh, start, end, radius, opacity) => {
+            const direction = new THREE.Vector3().subVectors(end, start);
+            const length = Math.max(direction.length(), 0.0001);
+            mesh.scale.set(1, length, 1);
+            mesh.position.copy(start).add(end).multiplyScalar(0.5);
+            mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.clone().normalize());
+            mesh.material.opacity = opacity;
+            mesh.geometry.dispose();
+            mesh.geometry = new THREE.CylinderGeometry(radius, radius, 1, 8, 1, false);
+          };
+
+          const clearDashGroup = (group) => {
+            while (group.children.length) {
+              const child = group.children.pop();
+              child.geometry.dispose();
+              child.material.dispose();
+            }
+          };
+
+          const addDashPiece = (group, pathStart, pathEnd, segStart, dir, colorHex, radius, opacity) => {
+            const a = segStart.clone().addScaledVector(dir, pathStart);
+            const b = segStart.clone().addScaledVector(dir, pathEnd);
+            group.add(makeSegmentCylinder(a, b, colorHex, radius, opacity));
+          };
+
+          const updateDashedLinkContinuous = (linkGroup, start, end, elapsed, cumulativeStart, totalLoopLength) => {
+            const data = linkGroup.userData;
+            const direction = new THREE.Vector3().subVectors(end, start);
+            const segmentLength = direction.length();
+            const dir = direction.clone().normalize();
+            setCylinderBetween(data.faint, start, end, 0.014, 0.08);
+            clearDashGroup(data.dashGroup);
+
+            const cycle = data.dashLen + data.gapLen;
+            const flowOffset = (elapsed * 0.54) % cycle;
+            const segStart = cumulativeStart;
+            const segEnd = cumulativeStart + segmentLength;
+            const nMin = Math.floor((segStart - flowOffset - data.dashLen) / cycle) - 1;
+            const nMax = Math.ceil((segEnd - flowOffset) / cycle) + 1;
+
+            for (let n = nMin; n <= nMax; n += 1) {
+              const dashStart = flowOffset + n * cycle;
+              const dashEnd = dashStart + data.dashLen;
+              let localStart = Math.max(segStart, dashStart);
+              let localEnd = Math.min(segEnd, dashEnd);
+
+              if (localEnd > localStart) {
+                addDashPiece(data.dashGroup, localStart - segStart, localEnd - segStart, start, dir, data.colorHex, 0.032, 0.92);
+              }
+
+              localStart = Math.max(segStart, dashStart + totalLoopLength);
+              localEnd = Math.min(segEnd, dashEnd + totalLoopLength);
+              if (localEnd > localStart) {
+                addDashPiece(data.dashGroup, localStart - segStart, localEnd - segStart, start, dir, data.colorHex, 0.032, 0.92);
+              }
+            }
+          };
+
+          const zAxis = new THREE.Vector3(0, 0, 1);
+          const nodeDefs = [
+            { id: "botnet", nodeColor: "#ff2b6e", textColor: "#ff89ad", base: new THREE.Vector3(-3.1, -0.2, 1.15), scale: 2.75 },
+            { id: "kamera", nodeColor: "#76f8ff", textColor: "#dcfdff", base: new THREE.Vector3(0.65, 2.45, -0.35), scale: 2.68 },
+            { id: "hub", nodeColor: "#76f8ff", textColor: "#dcfdff", base: new THREE.Vector3(3.15, 0.25, 1.2), scale: 2.66 },
+            { id: "dns", nodeColor: "#76f8ff", textColor: "#dcfdff", base: new THREE.Vector3(-0.55, -1.55, -1.45), scale: 2.55 }
+          ];
+          const nodeMap = {};
+          nodeDefs.forEach((def) => {
+            const object = makeNodeObject(def.id, def.nodeColor, def.textColor, def.base, def.scale);
+            scene.add(object);
+            nodeMap[def.id] = { base: def.base.clone(), object };
+          });
+
+          const links = [
+            { a: "dns", b: "botnet", object: makeDashedLink(0xff2b6e) },
+            { a: "botnet", b: "kamera", object: makeDashedLink(0x76f8ff) },
+            { a: "kamera", b: "hub", object: makeDashedLink(0x76f8ff) },
+            { a: "hub", b: "dns", object: makeDashedLink(0x76f8ff) }
+          ];
+          links.forEach((link) => scene.add(link.object));
+
+          const updateNodes = (angle, elapsed) => {
+            Object.values(nodeMap).forEach((node) => {
+              const rotated = node.base.clone().applyAxisAngle(zAxis, angle);
+              node.object.position.copy(rotated);
+              node.object.userData.pentagon.quaternion.copy(camera.quaternion);
+              node.object.userData.label.quaternion.copy(camera.quaternion);
+              const pulse = 1 + Math.sin(elapsed * 1.4 + node.base.z) * 0.012;
+              const scale = node.object.userData.baseScale;
+              node.object.userData.pentagon.scale.set(scale * pulse, scale * pulse, 1);
+              const labelAspect = node.object.userData.label.material.map.userData.aspect;
+              node.object.userData.label.scale.set(scale * 1.02 * pulse, scale * 1.02 * labelAspect * pulse, 1);
+            });
+          };
+
+          const updateLinks = (elapsed) => {
+            let totalLoopLength = 0;
+            const segments = links.map((link) => {
+              const start = nodeMap[link.a].object.position.clone();
+              const end = nodeMap[link.b].object.position.clone();
+              const length = start.distanceTo(end);
+              totalLoopLength += length;
+              return { start, end, length, object: link.object };
+            });
+
+            let cumulative = 0;
+            segments.forEach((segment) => {
+              updateDashedLinkContinuous(segment.object, segment.start, segment.end, elapsed, cumulative, totalLoopLength);
+              cumulative += segment.length;
+            });
+          };
+
+          const resize = () => {
+            const rect = container.getBoundingClientRect();
+            const width = Math.max(1, Math.floor(rect.width));
+            const height = Math.max(1, Math.floor(rect.height));
+            renderer.setSize(width, height, false);
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            updateCamera();
+          };
+
+          let angle = -0.18;
+          const clock = new THREE.Clock();
+          const animate = () => {
+            requestAnimationFrame(animate);
+            const elapsed = clock.getElapsedTime();
+            angle += 0.0028;
+            updateNodes(angle, elapsed);
+            updateLinks(elapsed);
+            renderer.render(scene, camera);
+          };
+
+          new ResizeObserver(resize).observe(container);
+          resize();
+          container.classList.add("three-ready");
+          animate();
         }
 
         setupIntersectionObserver() {
