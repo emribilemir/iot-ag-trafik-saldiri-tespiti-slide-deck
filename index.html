@@ -3413,42 +3413,44 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
             return;
           }
 
-          // Safari (WebKit) rendering engine struggles with JS-driven scrollTop animations on 
-          // scroll-snap containers, causing 60Hz stutter on ProMotion displays and a 1px snap jitter.
-          // For Safari, we delegate to the native GPU-accelerated smooth scroll which perfectly mimics trackpad.
-          const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-          if (isSafari) {
-            this.scrollElement.scrollTo({ top: targetScroll, behavior: 'smooth' });
-            setTimeout(() => { this.isKeyNavigating = false; }, 850); // Cooldown lock
-            return;
-          }
-
+          // Disable native snap to prevent conflicts
           this.scrollElement.style.scrollSnapType = 'none';
 
           const startTime = performance.now();
-          const duration = 1000; // Slowed down from 700ms for a more relaxed, gentle keyboard transition
+          const duration = 1000;
           
           const step = (now) => {
             const elapsed = now - startTime;
             const progress = Math.min(elapsed / duration, 1);
-            const ease = 1 - Math.pow(1 - progress, 5); // easeOutQuint for organic feel
+            
+            // easeInOutCubic creates a much softer start, feeling as smooth as a trackpad
+            const ease = progress < 0.5 
+              ? 4 * Math.pow(progress, 3) 
+              : 1 - Math.pow(-2 * progress + 2, 3) / 2;
 
-            this.scrollElement.scrollTop = Math.round(startScroll + distance * ease);
+            this.scrollElement.scrollTop = startScroll + distance * ease;
 
             if (progress < 1) {
               requestAnimationFrame(step);
             } else {
               this.scrollElement.scrollTop = targetScroll;
-              requestAnimationFrame(() => {
-                this.scrollElement.style.scrollSnapType = '';
-                this.isKeyNavigating = false;
-              });
+              this.isKeyNavigating = false;
+              // We intentionally DO NOT restore scrollSnapType here to prevent Safari's 1px jitter bug.
+              // It will be restored upon the next physical trackpad/touch interaction.
             }
           };
           requestAnimationFrame(step);
         }
 
         setupTouchNav() {
+          const restoreSnap = () => {
+            if (!this.isKeyNavigating && this.scrollElement.style.scrollSnapType === 'none') {
+              this.scrollElement.style.scrollSnapType = '';
+            }
+          };
+          window.addEventListener('wheel', restoreSnap, { passive: true });
+          window.addEventListener('touchstart', restoreSnap, { passive: true });
+
           let startY = 0;
           window.addEventListener("touchstart", (event) => {
             startY = event.touches[0].clientY;
@@ -3540,12 +3542,12 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
                 const g = Math.round(10 + 213 * eased);
                 const b = Math.round(17 + 197 * eased);
                 
-                // Exponential blur build-up to make the end feel explosive
-                const blur = 24 * Math.pow(eased, 3); 
+                // Exponential blur build-up reduced by ~40% for a cleaner look
+                const blur = 14 * Math.pow(eased, 3); 
                 const scale = 0.95 + (0.05 * eased);
                 
                 counter.style.color = `rgb(${r}, ${g}, ${b})`;
-                counter.style.textShadow = `0 0 ${blur}px rgba(125, 223, 214, ${intensity})`;
+                counter.style.textShadow = `0 0 ${blur}px rgba(125, 223, 214, ${intensity * 0.6})`;
                 counter.style.transform = `scale(${scale})`;
                 
                 if (progress < 1) {
