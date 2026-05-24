@@ -3368,18 +3368,61 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
         }
 
         setupKeyboardNav() {
+          this.isKeyNavigating = false;
           window.addEventListener("keydown", (event) => {
             const nextKeys = ["ArrowDown", "ArrowRight", " ", "PageDown"];
             const prevKeys = ["ArrowUp", "ArrowLeft", "PageUp"];
             if (nextKeys.includes(event.key)) {
               event.preventDefault();
-              this.goTo(this.currentSlide + 1);
+              if (this.isKeyNavigating) return;
+              this.keyboardGoTo(this.currentSlide + 1);
             }
             if (prevKeys.includes(event.key)) {
               event.preventDefault();
-              this.goTo(this.currentSlide - 1);
+              if (this.isKeyNavigating) return;
+              this.keyboardGoTo(this.currentSlide - 1);
             }
           });
+        }
+
+        keyboardGoTo(index) {
+          const targetIndex = Math.max(0, Math.min(this.slides.length - 1, index));
+          if (targetIndex === this.currentSlide) {
+            this.isKeyNavigating = false;
+            return;
+          }
+          
+          this.isKeyNavigating = true;
+          const targetSlide = this.slides[targetIndex];
+          const startScroll = this.scrollElement.scrollTop;
+          const targetScroll = targetSlide.offsetTop;
+          const distance = targetScroll - startScroll;
+          
+          if (distance === 0) {
+            this.isKeyNavigating = false;
+            return;
+          }
+
+          this.scrollElement.style.scrollSnapType = 'none';
+
+          const startTime = performance.now();
+          const duration = 700; // Matches typical native scroll-snap physics duration
+          
+          const step = (now) => {
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const ease = 1 - Math.pow(1 - progress, 5); // easeOutQuint for organic feel
+
+            this.scrollElement.scrollTop = startScroll + distance * ease;
+
+            if (progress < 1) {
+              requestAnimationFrame(step);
+            } else {
+              this.scrollElement.style.scrollSnapType = '';
+              this.isKeyNavigating = false;
+            }
+          };
+          requestAnimationFrame(step);
         }
 
         setupTouchNav() {
