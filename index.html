@@ -3413,6 +3413,16 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
             return;
           }
 
+          // Safari (WebKit) rendering engine struggles with JS-driven scrollTop animations on 
+          // scroll-snap containers, causing 60Hz stutter on ProMotion displays and a 1px snap jitter.
+          // For Safari, we delegate to the native GPU-accelerated smooth scroll which perfectly mimics trackpad.
+          const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+          if (isSafari) {
+            this.scrollElement.scrollTo({ top: targetScroll, behavior: 'smooth' });
+            setTimeout(() => { this.isKeyNavigating = false; }, 850); // Cooldown lock
+            return;
+          }
+
           this.scrollElement.style.scrollSnapType = 'none';
 
           const startTime = performance.now();
@@ -3423,22 +3433,14 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
             const progress = Math.min(elapsed / duration, 1);
             const ease = 1 - Math.pow(1 - progress, 5); // easeOutQuint for organic feel
 
-            this.scrollElement.scrollTop = startScroll + distance * ease;
+            this.scrollElement.scrollTop = Math.round(startScroll + distance * ease);
 
             if (progress < 1) {
               requestAnimationFrame(step);
             } else {
               this.scrollElement.scrollTop = targetScroll;
-              
-              // Safari fix: wait a frame, restore snap, force layout, and explicitly set scroll without animation
               requestAnimationFrame(() => {
                 this.scrollElement.style.scrollSnapType = '';
-                
-                // Force synchronous layout recalculation so Safari registers the snap change
-                void this.scrollElement.offsetHeight;
-                
-                // Instantly apply target scroll with behavior: 'auto' to override Safari's automatic micro-snap animation
-                this.scrollElement.scrollTo({ top: targetScroll, behavior: 'auto' });
                 this.isKeyNavigating = false;
               });
             }
@@ -3532,17 +3534,26 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
                 const current = Math.round(1 + (target - 1) * eased);
                 counter.textContent = `${current}${suffix}`;
                 
-                // Charging up effect
-                const intensity = 0.2 + (0.8 * eased);
-                const blur = 10 * eased;
-                counter.style.color = `rgba(125, 223, 214, ${intensity})`;
-                counter.style.textShadow = `0 0 ${blur}px rgba(125, 223, 214, ${intensity * 0.5})`;
+                // Intensive charging up effect
+                const intensity = 0.1 + (0.9 * eased);
+                const r = Math.round(5 + 120 * eased);
+                const g = Math.round(10 + 213 * eased);
+                const b = Math.round(17 + 197 * eased);
+                
+                // Exponential blur build-up to make the end feel explosive
+                const blur = 24 * Math.pow(eased, 3); 
+                const scale = 0.95 + (0.05 * eased);
+                
+                counter.style.color = `rgb(${r}, ${g}, ${b})`;
+                counter.style.textShadow = `0 0 ${blur}px rgba(125, 223, 214, ${intensity})`;
+                counter.style.transform = `scale(${scale})`;
                 
                 if (progress < 1) {
                   requestAnimationFrame(tick);
                 } else {
                   counter.style.color = '';
                   counter.style.textShadow = '';
+                  counter.style.transform = '';
                   counter.classList.add("bloom-pop");
                 }
               };
