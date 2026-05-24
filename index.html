@@ -1502,6 +1502,16 @@
         opacity: 0.72;
       }
 
+      @keyframes bloomPop {
+        0% { transform: scale(1); text-shadow: none; color: inherit; }
+        30% { transform: scale(1.08); text-shadow: 0 0 16px rgba(125,223,214,0.7); color: #fff; }
+        100% { transform: scale(1); text-shadow: none; color: inherit; }
+      }
+      .bloom-pop {
+        display: inline-block;
+        animation: bloomPop 0.8s var(--ease-out-expo) forwards;
+      }
+
       /* ===========================================
          SLIDE 07 DISTRIBUTION CHART
          =========================================== */
@@ -3418,6 +3428,7 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
             if (progress < 1) {
               requestAnimationFrame(step);
             } else {
+              this.scrollElement.scrollTop = Math.round(targetScroll);
               this.scrollElement.style.scrollSnapType = '';
               this.isKeyNavigating = false;
             }
@@ -3500,6 +3511,8 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
             const target = Number(counter.dataset.ratioCount);
             const suffix = counter.dataset.suffix || "";
             
+            counter.classList.remove("bloom-pop");
+            
             setTimeout(() => {
               const start = performance.now();
               const duration = 1500;
@@ -3508,7 +3521,12 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
                 const eased = this.easeOutQuint(progress);
                 const current = Math.round(1 + (target - 1) * eased);
                 counter.textContent = `${current}${suffix}`;
-                if (progress < 1) requestAnimationFrame(tick);
+                
+                if (progress < 1) {
+                  requestAnimationFrame(tick);
+                } else {
+                  counter.classList.add("bloom-pop");
+                }
               };
               requestAnimationFrame(tick);
             }, 240);
