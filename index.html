@@ -2363,12 +2363,32 @@
       .core-value b {
         font-size: clamp(2.9rem, 7vw, 6.2rem);
         line-height: 0.9;
+        display: block;
+        opacity: 0;
+        transform: translateY(24px);
+        transition: opacity 800ms var(--ease-out-expo), transform 800ms var(--ease-out-expo);
+        transition-delay: 350ms;
+      }
+      
+      .slide.visible .core-value b {
+        opacity: 1;
+        transform: translateY(0);
       }
 
       .core-value span {
         color: var(--text-muted);
         font-family: var(--font-mono);
         font-size: var(--small-size);
+        display: block;
+        opacity: 0;
+        transform: translateY(-24px);
+        transition: opacity 800ms var(--ease-out-expo), transform 800ms var(--ease-out-expo);
+        transition-delay: 250ms;
+      }
+
+      .slide.visible .core-value span {
+        opacity: 1;
+        transform: translateY(0);
       }
 
       .closing-steps {
@@ -2787,8 +2807,8 @@
             <div class="kicker reveal">Bulgular</div>
             <h2 class="reveal delay-1">Model yüksek skor veriyor;<br>kritik yorum hata türlerinde.</h2>
             <div class="result-kpis reveal-scale delay-2" style="margin-top: var(--content-gap);">
-              <div class="metric"><b data-count="99.95" data-suffix="%">0</b><span>accuracy</span></div>
-              <div class="metric"><b data-count="99.98" data-suffix="%">0</b><span>F1-score</span></div>
+              <div class="metric"><b data-count="99.95" data-suffix="%" data-instant="true">0</b><span>accuracy</span></div>
+              <div class="metric"><b data-count="99.98" data-suffix="%" data-instant="true">0</b><span>F1-score</span></div>
             </div>
           </div>
           <div class="matrix panel reveal-scale delay-2">
@@ -2859,12 +2879,12 @@
         <h2 class="reveal delay-1">Ham ağ trafiğinden,<br>anlaşılır güvenlik çıktısı ürettik.</h2>
         <p class="reveal delay-2" style="max-width: min(86vw, 720px);">Paket kaydı, akış özeti ve model yorumu tek bir karar ekranına dönüşüyor.</p>
         <div class="closing-system reveal-scale delay-3">
-          <div class="closing-core">
-            <div class="core-value">
-              <b data-count="99.95" data-suffix="%">0</b>
-              <span>accuracy</span>
+            <div class="closing-core">
+              <div class="core-value">
+                <span>doğruluk oranı</span>
+                <b data-count="99.95" data-suffix="%" data-instant="true">0</b>
+              </div>
             </div>
-          </div>
           <div class="closing-steps">
             <div class="closing-step"><span class="step-pulse"></span><p><strong>Trafiği anlamlandır</strong>Ham paket kaydı, Zeek flow çıktısıyla okunabilir hale gelir.</p></div>
             <div class="closing-step"><span class="step-pulse"></span><p><strong>Gürültüyü azalt</strong>Kimlik alanları çıkarılır; model davranış desenine odaklanır.</p></div>
@@ -3396,8 +3416,22 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
             const target = Number(counter.dataset.count);
             const suffix = counter.dataset.suffix || "";
             const decimals = String(target).includes(".") ? 2 : 0;
+            const instant = counter.dataset.instant === "true";
+
             setTimeout(() => {
-              counter.textContent = `${target.toFixed(decimals)}${suffix}`;
+              if (instant) {
+                counter.textContent = `${target.toFixed(decimals)}${suffix}`;
+                return;
+              }
+              const start = performance.now();
+              const duration = 1200;
+              const tick = (now) => {
+                const progress = Math.min(1, (now - start) / duration);
+                const eased = this.easeOutQuint(progress);
+                counter.textContent = `${(target * eased).toFixed(decimals)}${suffix}`;
+                if (progress < 1) requestAnimationFrame(tick);
+              };
+              requestAnimationFrame(tick);
             }, 450);
           });
         }
@@ -3496,7 +3530,7 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
           const rows = Array.from(element.querySelectorAll(".code-row"));
           const maxScroll = Math.max(0, viewport.scrollHeight - viewport.clientHeight);
           const start = performance.now();
-          const duration = 4300;
+          const duration = 2150;
 
           await new Promise((resolve) => {
             const step = (now) => {
@@ -3578,7 +3612,7 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
             "f1-skoru            : %99.98",
             "toplam hata         : 28"
           ];
-          await this.revealTerminalLines(output, lines, 145);
+          await this.revealTerminalLines(output, lines, 70);
           await new Promise((resolve) => setTimeout(resolve, 260));
           panel.classList.add("ran");
           button.textContent = "DONE";
