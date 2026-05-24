@@ -3247,18 +3247,25 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
               const pulse = 1 + Math.sin(elapsed * 1.4 + node.base.z) * 0.012;
               const scale = node.object.userData.baseScale;
               node.object.userData.pentagon.scale.set(scale * pulse, scale * pulse, 1);
-              const labelWorld = rotated.clone().add(new THREE.Vector3(0, -0.68 * scale, 0.2));
-              const projected = labelWorld.project(camera);
+              
+              const projectedNode = rotated.clone().project(camera);
               const width = container.clientWidth || 1;
               const height = container.clientHeight || 1;
-              const x = (projected.x * 0.5 + 0.5) * width;
-              const y = (-projected.y * 0.5 + 0.5) * height;
-              const safeX = Math.max(28, Math.min(width - 28, x));
-              const safeY = Math.max(12, Math.min(height - 34, y));
+              const nodeX = (projectedNode.x * 0.5 + 0.5) * width;
+              const nodeY = (-projectedNode.y * 0.5 + 0.5) * height;
+
+              const distance = Math.max(0.1, camera.position.distanceTo(rotated));
               const depthScale = Math.max(0.84, Math.min(1.14, 0.96 + rotated.z * 0.025));
+              
+              // Mathematically consistent vertical offset based on projected pentagon visual height
+              const verticalOffset = (0.28 * scale * pulse * height) / distance + 14 * depthScale;
+
+              const safeX = Math.max(28, Math.min(width - 28, nodeX));
+              const safeY = Math.max(12, Math.min(height - 34, nodeY + verticalOffset));
+
               node.object.userData.label.style.left = `${safeX}px`;
               node.object.userData.label.style.top = `${safeY}px`;
-              node.object.userData.label.style.opacity = projected.z > 1 ? "0" : "1";
+              node.object.userData.label.style.opacity = projectedNode.z > 1 ? "0" : "1";
               node.object.userData.label.style.transform = `translate(-50%, 0) scale(${depthScale})`;
             });
           };
