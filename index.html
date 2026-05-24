@@ -621,8 +621,12 @@
         width: clamp(0.18rem, 0.5vw, 0.36rem);
         height: 100%;
         background: linear-gradient(180deg, transparent, rgba(0,255,204,0.68), transparent);
+        opacity: 0;
+      }
+
+      .slide.visible .hero-wire span {
         animation: scan 3.6s linear infinite;
-        animation-delay: calc(-2.8s - (var(--i) * 0.21s));
+        animation-delay: calc(0.6s + (var(--i) * 0.4s));
       }
 
       @keyframes scan {
@@ -1235,13 +1239,13 @@
         display: block;
         min-height: 1.55em;
         opacity: 0;
-        transform: translateY(12px) scale(0.92);
+        transform: translateY(16px) scale(0.95);
         filter: blur(0.12rem);
-        transform-origin: left center;
+        transform-origin: bottom center;
         transition:
-          opacity 520ms var(--ease-out-expo),
-          transform 520ms var(--ease-out-expo),
-          filter 520ms var(--ease-out-expo);
+          opacity 369ms var(--ease-out-expo),
+          transform 369ms var(--ease-out-expo),
+          filter 369ms var(--ease-out-expo);
       }
 
       .terminal-line.visible {
@@ -2696,7 +2700,7 @@
           <h2>Kod çalışır, sonuçlar ekranda belirir.</h2>
         </div>
         <div class="lab-grid">
-          <div class="editor panel reveal-scale delay-1">
+          <div class="editor panel reveal delay-1">
             <div class="terminal-bar">
               <span class="traffic-light red"></span><span class="traffic-light yellow"></span><span class="traffic-light green"></span>
               <span class="terminal-title">pcap-loglar/main.py</span>
@@ -2707,7 +2711,7 @@
               </div>
             </div>
           </div>
-          <div class="run-panel panel reveal-scale delay-2" data-run-panel>
+          <div class="run-panel panel reveal delay-2" data-run-panel>
             <div>
               <button class="run-button" type="button" data-run-button>RUN</button>
               <p style="margin-top: clamp(0.7rem, 1.2vh, 1rem);">Model IP ve port ezberlemesin diye kimlik alanları çıkarılır; sayısal flow özellikleriyle eğitim yapılır.</p>
@@ -3257,11 +3261,10 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
               const distance = Math.max(0.1, camera.position.distanceTo(rotated));
               const depthScale = Math.max(0.84, Math.min(1.14, 0.96 + rotated.z * 0.025));
               
-              // Mathematically consistent vertical offset based on projected pentagon visual height
               const verticalOffset = (0.28 * scale * pulse * height) / distance + 14 * depthScale;
 
-              const safeX = Math.max(28, Math.min(width - 28, nodeX));
-              const safeY = Math.max(12, Math.min(height - 34, nodeY + verticalOffset));
+              const safeX = nodeX;
+              const safeY = nodeY + verticalOffset;
 
               node.object.userData.label.style.left = `${safeX}px`;
               node.object.userData.label.style.top = `${safeY}px`;
@@ -3467,17 +3470,20 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
           element.classList.remove("done");
           element.classList.add("running");
 
-          for (const line of lines) {
+          lines.forEach((line, i) => {
             const row = document.createElement("span");
             row.className = "terminal-line";
             row.textContent = line;
+            row.style.transitionDelay = `${i * stagger}ms`;
             element.appendChild(row);
-            
-            await new Promise((resolve) => requestAnimationFrame(resolve));
-            row.classList.add("visible");
-            
-            await new Promise((resolve) => setTimeout(resolve, stagger));
-          }
+          });
+
+          await new Promise((resolve) => requestAnimationFrame(resolve));
+          const rows = Array.from(element.querySelectorAll(".terminal-line"));
+          rows.forEach((row) => row.classList.add("visible"));
+
+          const totalDuration = (lines.length - 1) * stagger + 369;
+          await new Promise((resolve) => setTimeout(resolve, totalDuration));
 
           await new Promise((resolve) => setTimeout(resolve, 180));
           element.classList.remove("running");
@@ -3512,23 +3518,10 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
           const rows = Array.from(element.querySelectorAll(".code-row"));
           await new Promise((resolve) => requestAnimationFrame(resolve));
           rows.forEach((row) => row.classList.add("visible"));
-          await new Promise((resolve) => requestAnimationFrame(resolve));
 
-          const maxScroll = Math.max(0, viewport.scrollHeight - viewport.clientHeight);
-          const start = performance.now();
-          const duration = 2200;
-          await new Promise((resolve) => {
-            const step = (now) => {
-              const progress = Math.min(1, (now - start) / duration);
-              const eased = this.easeOutCubic(progress);
-              viewport.scrollTop = maxScroll * eased;
-              if (progress < 1) requestAnimationFrame(step);
-              else resolve();
-            };
-            requestAnimationFrame(step);
-          });
+          const totalDuration = (source.length - 1) * 14 + 300; // max transition delay is 1400 though
+          await new Promise((resolve) => setTimeout(resolve, totalDuration));
 
-          rows.forEach((row) => row.classList.add("visible"));
           element.classList.add("done");
           await new Promise((resolve) => requestAnimationFrame(resolve));
           viewport.scrollTop = Math.max(0, viewport.scrollHeight - viewport.clientHeight);
