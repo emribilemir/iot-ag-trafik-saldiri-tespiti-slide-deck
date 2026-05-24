@@ -1434,9 +1434,6 @@
       .run-stats {
         display: grid;
         gap: var(--element-gap);
-        opacity: 0;
-        transform: translateY(clamp(0.5rem, 1vh, 0.9rem));
-        transition: opacity 420ms var(--ease-out-expo), transform 420ms var(--ease-out-expo);
       }
 
       .run-stat {
@@ -3591,7 +3588,7 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
             "flow tablosu model için hazır"
           ];
           this.revealTerminalLines(document.querySelector('[data-type="tcpdump"]'), tcpdump, 260);
-          setTimeout(() => this.revealTerminalLines(document.querySelector('[data-type="zeek"]'), zeek, 260), 700);
+          this.revealTerminalLines(document.querySelector('[data-type="zeek"]'), zeek, 260);
         }
 
         setupRunButton() {
