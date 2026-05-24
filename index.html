@@ -852,38 +852,8 @@
         z-index: 1;
       }
 
-      .orbit-label-layer {
-        position: absolute;
-        inset: 0;
-        z-index: 3;
-        overflow: visible;
-        pointer-events: none;
-      }
-
       .orbit-label {
-        position: absolute;
-        left: 0;
-        top: 0;
-        color: rgba(220,253,255,0.96);
-        font-family: var(--font-mono);
-        font-weight: 700;
-        font-size: clamp(0.68rem, 1.05vw, 0.95rem);
-        line-height: 1;
-        white-space: nowrap;
-        text-shadow:
-          0 0 0.35rem currentColor,
-          0 0 0.85rem rgba(125,223,214,0.32),
-          0 0 0.18rem rgba(5,10,17,0.92);
-        transform: translate(-50%, 0);
-        will-change: left, top, transform;
-      }
-
-      .orbit-label.hot {
-        color: rgba(255,137,173,0.98);
-        text-shadow:
-          0 0 0.35rem currentColor,
-          0 0 0.95rem rgba(255,43,110,0.36),
-          0 0 0.18rem rgba(5,10,17,0.92);
+        display: none;
       }
 
       .orbit-fallback {
@@ -3146,25 +3116,57 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
             return new THREE.CanvasTexture(canvas);
           };
 
-          const makeNodeObject = (nodeColor, worldPos, worldScale) => {
+          const makeTextTexture = (text, textColor, glowColor) => {
+            const canvas = document.createElement("canvas");
+            canvas.width = 512;
+            canvas.height = 128;
+            const ctx = canvas.getContext("2d");
+            ctx.font = 'bold 58px "Space Mono", monospace';
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            if (ctx.letterSpacing !== undefined) ctx.letterSpacing = "2px";
+            ctx.shadowColor = glowColor;
+            ctx.shadowBlur = 24;
+            ctx.fillStyle = textColor;
+            ctx.fillText(text, 256, 64);
+            ctx.fillText(text, 256, 64); // draw multiple times for stronger inner glow
+            ctx.fillText(text, 256, 64);
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.minFilter = THREE.LinearFilter;
+            return tex;
+          };
+
+          const makeNodeObject = (def) => {
             const group = new THREE.Group();
-            group.position.copy(worldPos);
-            group.userData.baseScale = worldScale;
+            group.position.copy(def.base);
+            group.userData.baseScale = def.scale;
 
             const pentagonMaterial = new THREE.SpriteMaterial({
-              map: makePentagonTexture(nodeColor),
+              map: makePentagonTexture(def.nodeColor),
               transparent: true,
-              depthWrite: true,
+              depthWrite: false, // Ensures transparent bounding boxes don't occlude elements behind them
               depthTest: true,
               alphaTest: 0.18
             });
             const pentagon = new THREE.Sprite(pentagonMaterial);
-            pentagon.scale.set(worldScale, worldScale, 1);
+            pentagon.scale.set(def.scale, def.scale, 1);
             pentagon.renderOrder = 10;
             group.add(pentagon);
 
+            const glowColor = def.id === "botnet" ? "rgba(255, 43, 110, 0.8)" : "rgba(118, 248, 255, 0.8)";
+            const textMaterial = new THREE.SpriteMaterial({
+              map: makeTextTexture(def.id, def.textColor, glowColor),
+              transparent: true,
+              depthWrite: false,
+              depthTest: true
+            });
+            const textSprite = new THREE.Sprite(textMaterial);
+            textSprite.scale.set(def.scale * 1.55, def.scale * 0.38, 1); // Maintain aspect ratio of 512x128
+            textSprite.renderOrder = 11; // Always render text on top of its own pentagon
+            group.add(textSprite);
+
             group.userData.pentagon = pentagon;
-            group.userData.label = null;
+            group.userData.textSprite = textSprite;
             return group;
           };
 
@@ -3259,17 +3261,9 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
             { id: "dns", nodeColor: "#76f8ff", textColor: "#dcfdff", base: new THREE.Vector3(-0.55, -1.55, -1.45), scale: 2.55 }
           ];
           const nodeMap = {};
-          const labelLayer = document.createElement("div");
-          labelLayer.className = "orbit-label-layer";
-          container.appendChild(labelLayer);
           nodeDefs.forEach((def) => {
-            const object = makeNodeObject(def.nodeColor, def.base, def.scale);
+            const object = makeNodeObject(def);
             scene.add(object);
-            const label = document.createElement("span");
-            label.className = `orbit-label${def.id === "botnet" ? " hot" : ""}`;
-            label.textContent = def.id;
-            labelLayer.appendChild(label);
-            object.userData.label = label;
             nodeMap[def.id] = { base: def.base.clone(), object };
           });
 
@@ -3282,32 +3276,27 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
           links.forEach((link) => scene.add(link.object));
 
           const updateNodes = (angle, elapsed) => {
+            // Pre-calculate the 'down' vector in world space for screen-aligned text positioning
+            const downVector = new THREE.Vector3(0, -1, 0).applyQuaternion(camera.quaternion);
+
             Object.values(nodeMap).forEach((node) => {
               const rotated = node.base.clone().applyAxisAngle(zAxis, angle);
               node.object.position.copy(rotated);
               node.object.userData.pentagon.quaternion.copy(camera.quaternion);
+              
               const pulse = 1 + Math.sin(elapsed * 1.4 + node.base.z) * 0.012;
               const scale = node.object.userData.baseScale;
               node.object.userData.pentagon.scale.set(scale * pulse, scale * pulse, 1);
               
-              const projectedNode = rotated.clone().project(camera);
-              const width = container.clientWidth || 1;
-              const height = container.clientHeight || 1;
-              const nodeX = (projectedNode.x * 0.5 + 0.5) * width;
-              const nodeY = (-projectedNode.y * 0.5 + 0.5) * height;
-
-              const distance = Math.max(0.1, camera.position.distanceTo(rotated));
-              const depthScale = Math.max(0.84, Math.min(1.14, 0.96 + rotated.z * 0.025));
+              // Position the text sprite physically below the pentagon in 3D space
+              const offsetDistance = scale * pulse * 0.58;
+              node.object.userData.textSprite.position.copy(downVector).multiplyScalar(offsetDistance);
               
-              const verticalOffset = (0.28 * scale * pulse * height) / distance + 14 * depthScale;
-
-              const safeX = nodeX;
-              const safeY = nodeY + verticalOffset;
-
-              node.object.userData.label.style.left = `${safeX}px`;
-              node.object.userData.label.style.top = `${safeY}px`;
-              node.object.userData.label.style.opacity = projectedNode.z > 1 ? "0" : "1";
-              node.object.userData.label.style.transform = `translate(-50%, 0) scale(${depthScale})`;
+              // Fade out nodes that are behind the camera
+              const projectedNode = rotated.clone().project(camera);
+              const opacity = projectedNode.z > 1 ? 0 : 1;
+              node.object.userData.pentagon.material.opacity = opacity;
+              node.object.userData.textSprite.material.opacity = opacity;
             });
           };
 
