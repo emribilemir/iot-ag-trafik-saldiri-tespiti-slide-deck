@@ -1496,8 +1496,8 @@
         isolation: isolate;
         font-size: clamp(3.3rem, 8vw, 7rem);
         line-height: 0.86;
-        color: rgb(63, 112, 107);
-        text-shadow: 0 0 clamp(1rem, 2.2vw, 2rem) rgba(125,223,214,0.22);
+        color: hsl(202 64% 21%);
+        text-shadow: 0 0 clamp(1rem, 2.2vw, 2rem) rgba(21,102,124,0.22);
         opacity: 0;
         transform: translate(-1.6rem, 1.15rem) scale(0.66);
         transform-origin: 20% 80%;
@@ -1538,6 +1538,7 @@
       }
 
       .balance-ratio b.ratio-charge::before {
+        background: radial-gradient(ellipse, rgba(63,161,173,0.34), rgba(42,121,139,0.05) 42%, transparent 72%);
         animation: ratioChargeGlow 420ms ease-out forwards;
       }
 
@@ -1556,11 +1557,11 @@
       @keyframes ratioCharge {
         0% {
           transform: translate(0, 0) scale(1);
-          text-shadow: 0 0 clamp(1rem, 2.2vw, 2rem) rgba(125,223,214,0.22);
+          text-shadow: 0 0 clamp(1rem, 2.2vw, 2rem) rgba(32,119,137,0.24);
         }
         100% {
           transform: translate(0, 0) scale(1.018);
-          text-shadow: 0 0 0.26em rgba(125,223,214,0.62), 0 0 0.62em rgba(125,223,214,0.2);
+          text-shadow: 0 0 0.26em rgba(69,171,180,0.56), 0 0 0.62em rgba(41,126,143,0.18);
         }
       }
 
@@ -3561,12 +3562,11 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
             counter.dataset.done = "true";
             const target = Number(counter.dataset.ratioCount);
             const suffix = counter.dataset.suffix || "";
-            const finalColor = [125, 223, 214];
-            const startBrightness = 0.5;
-            const preReleaseBrightness = 0.75;
+            const startTone = { h: 202, s: 64, l: 21 };
+            const preReleaseTone = { h: 187, s: 52, l: 49 };
 
             counter.classList.remove("ratio-charge", "ratio-pop");
-            counter.style.color = `rgb(${finalColor.map((channel) => Math.round(channel * startBrightness)).join(", ")})`;
+            counter.style.color = `hsl(${startTone.h} ${startTone.s}% ${startTone.l}%)`;
             
             setTimeout(() => {
               const start = performance.now();
@@ -3578,9 +3578,11 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
                 const countEased = this.easeOutQuint(countProgress);
                 const maxCurrent = target > 1 ? target - 1 : target;
                 const current = Math.round(1 + (maxCurrent - 1) * countEased);
-                const brightness = startBrightness + (preReleaseBrightness - startBrightness) * countProgress;
+                const hue = startTone.h + (preReleaseTone.h - startTone.h) * countProgress;
+                const saturation = startTone.s + (preReleaseTone.s - startTone.s) * countProgress;
+                const lightness = startTone.l + (preReleaseTone.l - startTone.l) * countProgress;
 
-                counter.style.color = `rgb(${finalColor.map((channel) => Math.round(channel * brightness)).join(", ")})`;
+                counter.style.color = `hsl(${hue} ${saturation}% ${lightness}%)`;
 
                 if (progress >= 0.72 && !charging) {
                   charging = true;
