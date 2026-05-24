@@ -3532,27 +3532,34 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
               const duration = 1500;
               const tick = (now) => {
                 const progress = Math.min(1, (now - start) / duration);
-                const eased = this.easeOutQuint(progress);
-                const current = Math.round(1 + (target - 1) * eased);
+                // We want the numbers to finish counting up to (target - 1) early (e.g. at 85% of the animation).
+                // This creates a 15% window where the number "holds", building tension before the pop.
+                const countProgress = Math.min(1, progress / 0.85);
+                const countEased = this.easeOutQuint(countProgress);
+                
+                const maxCurrent = target > 1 ? target - 1 : target;
+                const current = Math.round(1 + (maxCurrent - 1) * countEased);
+                
+                // Visuals use the full 100% progress so they keep building up while the number is paused
+                const visualEased = this.easeOutQuint(progress);
                 
                 // Intensive charging up effect
-                const intensity = 0.1 + (0.9 * eased);
-                const r = Math.round(5 + 120 * eased);
-                const g = Math.round(10 + 213 * eased);
-                const b = Math.round(17 + 197 * eased);
+                const intensity = 0.1 + (0.9 * visualEased);
+                const r = Math.round(5 + 120 * visualEased);
+                const g = Math.round(10 + 213 * visualEased);
+                const b = Math.round(17 + 197 * visualEased);
                 
-                // Exponential blur build-up reduced by ~40% for a cleaner look
-                const blur = 14 * Math.pow(eased, 3); 
-                const scale = 0.95 + (0.05 * eased);
+                // Exponential blur build-up
+                const blur = 14 * Math.pow(visualEased, 3); 
+                // Noticeable scale up during the hold
+                const scale = 0.92 + (0.12 * visualEased); 
                 
                 counter.style.color = `rgb(${r}, ${g}, ${b})`;
                 counter.style.textShadow = `0 0 ${blur}px rgba(125, 223, 214, ${intensity * 0.6})`;
                 counter.style.transform = `scale(${scale})`;
                 
                 if (progress < 1) {
-                  // Hold at (target - 1) to build maximum tension before the final pop!
-                  const displayVal = Math.min(target > 1 ? target - 1 : target, current);
-                  counter.textContent = `${displayVal}${suffix}`;
+                  counter.textContent = `${current}${suffix}`;
                   requestAnimationFrame(tick);
                 } else {
                   counter.textContent = `${target}${suffix}`;
