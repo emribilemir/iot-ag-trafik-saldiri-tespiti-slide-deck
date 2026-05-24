@@ -1496,7 +1496,7 @@
         isolation: isolate;
         font-size: clamp(3.3rem, 8vw, 7rem);
         line-height: 0.86;
-        color: var(--accent);
+        color: rgb(63, 112, 107);
         text-shadow: 0 0 clamp(1rem, 2.2vw, 2rem) rgba(125,223,214,0.22);
         opacity: 0;
         transform: translate(-1.6rem, 1.15rem) scale(0.66);
@@ -3561,8 +3561,12 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
             counter.dataset.done = "true";
             const target = Number(counter.dataset.ratioCount);
             const suffix = counter.dataset.suffix || "";
-            
+            const finalColor = [125, 223, 214];
+            const startBrightness = 0.5;
+            const preReleaseBrightness = 0.75;
+
             counter.classList.remove("ratio-charge", "ratio-pop");
+            counter.style.color = `rgb(${finalColor.map((channel) => Math.round(channel * startBrightness)).join(", ")})`;
             
             setTimeout(() => {
               const start = performance.now();
@@ -3574,6 +3578,9 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
                 const countEased = this.easeOutQuint(countProgress);
                 const maxCurrent = target > 1 ? target - 1 : target;
                 const current = Math.round(1 + (maxCurrent - 1) * countEased);
+                const brightness = startBrightness + (preReleaseBrightness - startBrightness) * countProgress;
+
+                counter.style.color = `rgb(${finalColor.map((channel) => Math.round(channel * brightness)).join(", ")})`;
 
                 if (progress >= 0.72 && !charging) {
                   charging = true;
@@ -3585,6 +3592,7 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
                   requestAnimationFrame(tick);
                 } else {
                   counter.textContent = `${target}${suffix}`;
+                  counter.style.color = "var(--accent)";
                   counter.classList.remove("ratio-charge");
                   counter.classList.add("ratio-pop");
                 }
