@@ -3406,7 +3406,7 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
           this.scrollElement.style.scrollSnapType = 'none';
 
           const startTime = performance.now();
-          const duration = 700; // Matches typical native scroll-snap physics duration
+          const duration = 1000; // Slowed down from 700ms for a more relaxed, gentle keyboard transition
           
           const step = (now) => {
             const elapsed = now - startTime;
