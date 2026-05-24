@@ -3230,13 +3230,13 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
               let localEnd = Math.min(segEnd, dashEnd);
 
               if (localEnd > localStart) {
-                addDashPiece(data.dashGroup, localStart - segStart, localEnd - segStart, start, dir, data.colorHex, 0.032, 0.92);
+                addDashPiece(data.dashGroup, localStart - segStart, localEnd - segStart, start, dir, data.colorHex, 0.016, 0.92);
               }
 
               localStart = Math.max(segStart, dashStart + totalLoopLength);
               localEnd = Math.min(segEnd, dashEnd + totalLoopLength);
               if (localEnd > localStart) {
-                addDashPiece(data.dashGroup, localStart - segStart, localEnd - segStart, start, dir, data.colorHex, 0.032, 0.92);
+                addDashPiece(data.dashGroup, localStart - segStart, localEnd - segStart, start, dir, data.colorHex, 0.016, 0.92);
               }
             }
           };
