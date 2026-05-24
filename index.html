@@ -643,11 +643,10 @@
       .signal-map {
         position: relative;
         min-height: clamp(16rem, 47vh, 28rem);
-        border: 1px solid var(--line);
-        background:
-          linear-gradient(90deg, transparent 0 45%, rgba(255,63,180,0.12) 45% 46%, transparent 46%),
-          rgba(13,22,38,0.55);
-        overflow: hidden;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+        overflow: visible;
       }
 
       .signal-lines {
@@ -836,10 +835,10 @@
 
       .orbit-network-scene {
         position: absolute;
-        inset: 0;
-        overflow: hidden;
+        inset: clamp(-1.5rem, -3vh, -0.75rem) clamp(-1rem, -2vw, -0.5rem);
+        overflow: visible;
         background:
-          radial-gradient(circle at 54% 46%, rgba(15,40,66,0.38) 0%, rgba(7,20,39,0.24) 42%, transparent 72%);
+          radial-gradient(circle at 54% 46%, rgba(15,40,66,0.24) 0%, rgba(7,20,39,0.12) 42%, transparent 72%);
       }
 
       .orbit-network-scene canvas {
@@ -862,7 +861,7 @@
       }
 
       .orbit-network-scene::after {
-        content: "";
+        content: none;
         position: absolute;
         inset: 0;
         pointer-events: none;
@@ -3107,17 +3106,20 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
               map: labelTexture,
               transparent: true,
               depthWrite: false,
-              depthTest: false
+              depthTest: false,
+              opacity: 0.98
             });
             const labelSprite = new THREE.Sprite(labelMaterial);
-            labelSprite.position.set(0, -0.82, 0);
+            labelSprite.position.set(0, -1.08, 0.06);
             const labelWidth = worldScale * 1.02;
-            labelSprite.scale.set(labelWidth, labelWidth * labelTexture.userData.aspect, 1);
-            labelSprite.renderOrder = 50;
-            group.add(labelSprite);
+            const labelHeight = labelWidth * labelTexture.userData.aspect;
 
             group.userData.pentagon = pentagon;
-            group.userData.label = labelSprite;
+            group.userData.labelTexture = labelTexture;
+            group.userData.labelMaterial = labelMaterial;
+            group.userData.labelScale = new THREE.Vector2(labelWidth, labelHeight);
+            group.userData.labelOffset = new THREE.Vector3(0, -0.9 * worldScale, 0);
+            group.userData.label = null;
             return group;
           };
 
@@ -3212,9 +3214,18 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
             { id: "dns", nodeColor: "#76f8ff", textColor: "#dcfdff", base: new THREE.Vector3(-0.55, -1.55, -1.45), scale: 2.55 }
           ];
           const nodeMap = {};
+          const labelLayer = new THREE.Group();
+          labelLayer.renderOrder = 80;
+          scene.add(labelLayer);
           nodeDefs.forEach((def) => {
             const object = makeNodeObject(def.id, def.nodeColor, def.textColor, def.base, def.scale);
             scene.add(object);
+            const label = new THREE.Sprite(object.userData.labelMaterial);
+            label.scale.set(object.userData.labelScale.x, object.userData.labelScale.y, 1);
+            label.renderOrder = 80;
+            label.frustumCulled = false;
+            labelLayer.add(label);
+            object.userData.label = label;
             nodeMap[def.id] = { base: def.base.clone(), object };
           });
 
@@ -3235,8 +3246,13 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
               const pulse = 1 + Math.sin(elapsed * 1.4 + node.base.z) * 0.012;
               const scale = node.object.userData.baseScale;
               node.object.userData.pentagon.scale.set(scale * pulse, scale * pulse, 1);
-              const labelAspect = node.object.userData.label.material.map.userData.aspect;
-              node.object.userData.label.scale.set(scale * 1.02 * pulse, scale * 1.02 * labelAspect * pulse, 1);
+              const labelPosition = rotated.clone().add(new THREE.Vector3(0, -0.78 * scale, 0.18));
+              node.object.userData.label.position.copy(labelPosition);
+              node.object.userData.label.scale.set(
+                node.object.userData.labelScale.x * pulse,
+                node.object.userData.labelScale.y * pulse,
+                1
+              );
             });
           };
 
