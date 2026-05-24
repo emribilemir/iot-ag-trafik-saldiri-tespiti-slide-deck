@@ -3534,7 +3534,6 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
                 const progress = Math.min(1, (now - start) / duration);
                 const eased = this.easeOutQuint(progress);
                 const current = Math.round(1 + (target - 1) * eased);
-                counter.textContent = `${current}${suffix}`;
                 
                 // Intensive charging up effect
                 const intensity = 0.1 + (0.9 * eased);
@@ -3551,8 +3550,12 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
                 counter.style.transform = `scale(${scale})`;
                 
                 if (progress < 1) {
+                  // Hold at (target - 1) to build maximum tension before the final pop!
+                  const displayVal = Math.min(target > 1 ? target - 1 : target, current);
+                  counter.textContent = `${displayVal}${suffix}`;
                   requestAnimationFrame(tick);
                 } else {
+                  counter.textContent = `${target}${suffix}`;
                   counter.style.color = '';
                   counter.style.textShadow = '';
                   counter.style.transform = '';
