@@ -852,40 +852,6 @@
         z-index: 1;
       }
 
-      .orbit-label-layer {
-        position: absolute;
-        inset: 0;
-        z-index: 3;
-        overflow: visible;
-        pointer-events: none;
-      }
-
-      .orbit-label {
-        position: absolute;
-        left: 0;
-        top: 0;
-        color: rgba(220,253,255,0.96);
-        font-family: var(--font-mono);
-        font-weight: 700;
-        font-size: clamp(0.68rem, 1.05vw, 0.95rem);
-        line-height: 1;
-        white-space: nowrap;
-        text-shadow:
-          0 0 0.35rem currentColor,
-          0 0 0.85rem rgba(125,223,214,0.32),
-          0 0 0.18rem rgba(5,10,17,0.92);
-        transform: translate(-50%, 0);
-        will-change: left, top, transform;
-      }
-
-      .orbit-label.hot {
-        color: rgba(255,137,173,0.98);
-        text-shadow:
-          0 0 0.35rem currentColor,
-          0 0 0.95rem rgba(255,43,110,0.36),
-          0 0 0.18rem rgba(5,10,17,0.92);
-      }
-
       .orbit-fallback {
         position: absolute;
         inset: 0;
@@ -1502,16 +1468,6 @@
         opacity: 0.72;
       }
 
-      @keyframes bloomPop {
-        0% { transform: scale(1); text-shadow: 0 0 10px rgba(125,223,214,0.5); color: rgba(125,223,214,1); }
-        30% { transform: scale(1.08); text-shadow: 0 0 20px rgba(125,223,214,0.9); color: #fff; }
-        100% { transform: scale(1); text-shadow: 0 0 12px rgba(125,223,214,0.5); color: rgba(125,223,214,1); }
-      }
-      .bloom-pop {
-        display: inline-block;
-        animation: bloomPop 0.8s var(--ease-out-expo) forwards;
-      }
-
       /* ===========================================
          SLIDE 07 DISTRIBUTION CHART
          =========================================== */
@@ -1536,6 +1492,8 @@
 
       .balance-ratio b {
         display: inline-block;
+        position: relative;
+        isolation: isolate;
         font-size: clamp(3.3rem, 8vw, 7rem);
         line-height: 0.86;
         color: var(--accent);
@@ -1551,6 +1509,92 @@
       .slide.visible .balance-ratio b {
         opacity: 1;
         transform: translate(0, 0) scale(1);
+      }
+
+      .balance-ratio b::before,
+      .balance-ratio b::after {
+        content: "";
+        position: absolute;
+        pointer-events: none;
+        opacity: 0;
+        z-index: -1;
+        border-radius: 999px;
+      }
+
+      .balance-ratio b::before {
+        inset: -0.16em -0.18em;
+        background: radial-gradient(ellipse, rgba(125,223,214,0.34), rgba(125,223,214,0.05) 42%, transparent 72%);
+        filter: blur(0.13em);
+      }
+
+      .balance-ratio b::after {
+        inset: -0.1em -0.16em;
+        border: 1px solid rgba(125,223,214,0.46);
+        filter: blur(0.035em);
+      }
+
+      .balance-ratio b.ratio-charge {
+        animation: ratioCharge 420ms cubic-bezier(0.22, 0.72, 0.26, 1) forwards;
+      }
+
+      .balance-ratio b.ratio-charge::before {
+        animation: ratioChargeGlow 420ms ease-out forwards;
+      }
+
+      .balance-ratio b.ratio-pop {
+        animation: ratioRelease 760ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+
+      .balance-ratio b.ratio-pop::before {
+        animation: ratioBloomRelease 760ms ease-out forwards;
+      }
+
+      .balance-ratio b.ratio-pop::after {
+        animation: ratioRingRelease 700ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+
+      @keyframes ratioCharge {
+        0% {
+          transform: translate(0, 0) scale(1);
+          text-shadow: 0 0 clamp(1rem, 2.2vw, 2rem) rgba(125,223,214,0.22);
+        }
+        100% {
+          transform: translate(0, 0) scale(1.018);
+          text-shadow: 0 0 0.26em rgba(125,223,214,0.62), 0 0 0.62em rgba(125,223,214,0.2);
+        }
+      }
+
+      @keyframes ratioChargeGlow {
+        0% { opacity: 0; transform: scale(0.64); }
+        100% { opacity: 0.8; transform: scale(0.8); }
+      }
+
+      @keyframes ratioRelease {
+        0% {
+          transform: translate(0, 0) scale(1.018);
+          text-shadow: 0 0 0.26em rgba(125,223,214,0.62), 0 0 0.62em rgba(125,223,214,0.2);
+        }
+        24% {
+          transform: translate(0, 0) scale(1.052);
+          text-shadow: 0 0 0.38em rgba(125,223,214,0.52), 0 0 0.96em rgba(125,223,214,0.2);
+        }
+        55% { transform: translate(0, 0) scale(0.994); }
+        100% {
+          transform: translate(0, 0) scale(1);
+          text-shadow: 0 0 clamp(1rem, 2.2vw, 2rem) rgba(125,223,214,0.22);
+        }
+      }
+
+      @keyframes ratioBloomRelease {
+        0% { opacity: 0.82; transform: scale(0.8); }
+        30% { opacity: 0.62; transform: scale(1.16); }
+        100% { opacity: 0; transform: scale(1.48); }
+      }
+
+      @keyframes ratioRingRelease {
+        0% { opacity: 0; transform: scale(0.76); }
+        20% { opacity: 0.48; }
+        100% { opacity: 0; transform: scale(1.42); }
       }
 
       .balance-ratio span {
@@ -3111,10 +3155,10 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
             new THREE.PointsMaterial({ color: 0x8cefff, size: 0.04, transparent: true, opacity: 0.13 })
           ));
 
-          const makePentagonTexture = (nodeColor) => {
+          const makeNodeTexture = (label, nodeColor, textColor) => {
             const canvas = document.createElement("canvas");
             canvas.width = 512;
-            canvas.height = 512;
+            canvas.height = 640;
             const ctx = canvas.getContext("2d");
             const cx = 256;
             const cy = 238;
@@ -3143,28 +3187,44 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
             ctx.strokeStyle = "rgba(255,255,255,0.28)";
             ctx.lineWidth = 4;
             ctx.stroke();
-            return new THREE.CanvasTexture(canvas);
+
+            ctx.font = "700 46px JetBrains Mono, Menlo, Monaco, Consolas, monospace";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillStyle = textColor;
+            ctx.shadowColor = textColor;
+            ctx.shadowBlur = 10;
+            ctx.fillText(label, cx, 365);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.userData = {
+              aspect: canvas.height / canvas.width,
+              anchorY: 1 - (cy / canvas.height)
+            };
+            return texture;
           };
 
-          const makeNodeObject = (nodeColor, worldPos, worldScale) => {
+          const makeNodeObject = (label, nodeColor, textColor, worldPos, worldScale) => {
             const group = new THREE.Group();
             group.position.copy(worldPos);
             group.userData.baseScale = worldScale;
 
+            const nodeTexture = makeNodeTexture(label, nodeColor, textColor);
             const pentagonMaterial = new THREE.SpriteMaterial({
-              map: makePentagonTexture(nodeColor),
+              map: nodeTexture,
               transparent: true,
               depthWrite: true,
               depthTest: true,
               alphaTest: 0.18
             });
             const pentagon = new THREE.Sprite(pentagonMaterial);
-            pentagon.scale.set(worldScale, worldScale, 1);
+            pentagon.center.set(0.5, nodeTexture.userData.anchorY);
+            pentagon.scale.set(worldScale, worldScale * nodeTexture.userData.aspect, 1);
             pentagon.renderOrder = 10;
             group.add(pentagon);
 
             group.userData.pentagon = pentagon;
-            group.userData.label = null;
+            group.userData.textureAspect = nodeTexture.userData.aspect;
             return group;
           };
 
@@ -3259,17 +3319,9 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
             { id: "dns", nodeColor: "#76f8ff", textColor: "#dcfdff", base: new THREE.Vector3(-0.55, -1.55, -1.45), scale: 2.55 }
           ];
           const nodeMap = {};
-          const labelLayer = document.createElement("div");
-          labelLayer.className = "orbit-label-layer";
-          container.appendChild(labelLayer);
           nodeDefs.forEach((def) => {
-            const object = makeNodeObject(def.nodeColor, def.base, def.scale);
+            const object = makeNodeObject(def.id, def.nodeColor, def.textColor, def.base, def.scale);
             scene.add(object);
-            const label = document.createElement("span");
-            label.className = `orbit-label${def.id === "botnet" ? " hot" : ""}`;
-            label.textContent = def.id;
-            labelLayer.appendChild(label);
-            object.userData.label = label;
             nodeMap[def.id] = { base: def.base.clone(), object };
           });
 
@@ -3288,26 +3340,11 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
               node.object.userData.pentagon.quaternion.copy(camera.quaternion);
               const pulse = 1 + Math.sin(elapsed * 1.4 + node.base.z) * 0.012;
               const scale = node.object.userData.baseScale;
-              node.object.userData.pentagon.scale.set(scale * pulse, scale * pulse, 1);
-              
-              const projectedNode = rotated.clone().project(camera);
-              const width = container.clientWidth || 1;
-              const height = container.clientHeight || 1;
-              const nodeX = (projectedNode.x * 0.5 + 0.5) * width;
-              const nodeY = (-projectedNode.y * 0.5 + 0.5) * height;
-
-              const distance = Math.max(0.1, camera.position.distanceTo(rotated));
-              const depthScale = Math.max(0.84, Math.min(1.14, 0.96 + rotated.z * 0.025));
-              
-              const verticalOffset = (0.28 * scale * pulse * height) / distance + 14 * depthScale;
-
-              const safeX = nodeX;
-              const safeY = nodeY + verticalOffset;
-
-              node.object.userData.label.style.left = `${safeX}px`;
-              node.object.userData.label.style.top = `${safeY}px`;
-              node.object.userData.label.style.opacity = projectedNode.z > 1 ? "0" : "1";
-              node.object.userData.label.style.transform = `translate(-50%, 0) scale(${depthScale})`;
+              node.object.userData.pentagon.scale.set(
+                scale * pulse,
+                scale * pulse * node.object.userData.textureAspect,
+                1
+              );
             });
           };
 
@@ -3525,48 +3562,31 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
             const target = Number(counter.dataset.ratioCount);
             const suffix = counter.dataset.suffix || "";
             
-            counter.classList.remove("bloom-pop");
+            counter.classList.remove("ratio-charge", "ratio-pop");
             
             setTimeout(() => {
               const start = performance.now();
               const duration = 1500;
+              let charging = false;
               const tick = (now) => {
                 const progress = Math.min(1, (now - start) / duration);
-                // We want the numbers to finish counting up to (target - 1) early (e.g. at 85% of the animation).
-                // This creates a 15% window where the number "holds", building tension before the pop.
                 const countProgress = Math.min(1, progress / 0.85);
                 const countEased = this.easeOutQuint(countProgress);
-                
                 const maxCurrent = target > 1 ? target - 1 : target;
                 const current = Math.round(1 + (maxCurrent - 1) * countEased);
-                
-                // Visuals use the full 100% progress so they keep building up while the number is paused
-                const visualEased = this.easeOutQuint(progress);
-                
-                // Intensive charging up effect
-                const intensity = 0.1 + (0.9 * visualEased);
-                const r = Math.round(5 + 120 * visualEased);
-                const g = Math.round(10 + 213 * visualEased);
-                const b = Math.round(17 + 197 * visualEased);
-                
-                // Exponential blur build-up
-                const blur = 14 * Math.pow(visualEased, 3); 
-                // Noticeable scale up during the hold
-                const scale = 0.92 + (0.12 * visualEased); 
-                
-                counter.style.color = `rgb(${r}, ${g}, ${b})`;
-                counter.style.textShadow = `0 0 ${blur}px rgba(125, 223, 214, ${intensity * 0.6})`;
-                counter.style.transform = `scale(${scale})`;
+
+                if (progress >= 0.72 && !charging) {
+                  charging = true;
+                  counter.classList.add("ratio-charge");
+                }
                 
                 if (progress < 1) {
                   counter.textContent = `${current}${suffix}`;
                   requestAnimationFrame(tick);
                 } else {
                   counter.textContent = `${target}${suffix}`;
-                  counter.style.color = '';
-                  counter.style.textShadow = '';
-                  counter.style.transform = '';
-                  counter.classList.add("bloom-pop");
+                  counter.classList.remove("ratio-charge");
+                  counter.classList.add("ratio-pop");
                 }
               };
               requestAnimationFrame(tick);
