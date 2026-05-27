@@ -407,6 +407,13 @@
         filter: blur(0);
       }
 
+      /* Keep visited slides from consuming compositor time behind the active screen. */
+      .slide:not(.is-current) *,
+      .slide:not(.is-current) *::before,
+      .slide:not(.is-current) *::after {
+        animation-play-state: paused !important;
+      }
+
       .delay-1 { transition-delay: 0.12s; }
       .delay-2 { transition-delay: 0.22s; }
       .delay-3 { transition-delay: 0.32s; }
@@ -979,6 +986,17 @@
         position: relative;
         height: clamp(7rem, 17vh, 11rem);
         overflow: visible;
+      }
+
+      #slide-3.is-current .traffic-orb,
+      #slide-3.is-current .traffic-orb::before,
+      #slide-3.is-current .traffic-orb::after,
+      #slide-3.is-current .data-mass,
+      #slide-3.is-current .data-mass::after,
+      #slide-3.is-current .data-chip,
+      #slide-3.is-current .tear-strand {
+        will-change: transform, opacity;
+        backface-visibility: hidden;
       }
 
       .data-mass {
@@ -3254,15 +3272,13 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
             return group;
           };
 
-          const setCylinderBetween = (mesh, start, end, radius, opacity) => {
+          const setCylinderBetween = (mesh, start, end, opacity) => {
             const direction = new THREE.Vector3().subVectors(end, start);
             const length = Math.max(direction.length(), 0.0001);
             mesh.scale.set(1, length, 1);
             mesh.position.copy(start).add(end).multiplyScalar(0.5);
             mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.clone().normalize());
             mesh.material.opacity = opacity;
-            mesh.geometry.dispose();
-            mesh.geometry = new THREE.CylinderGeometry(radius, radius, 1, 8, 1, false);
           };
 
           const clearDashGroup = (group) => {
@@ -3284,7 +3300,7 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
             const direction = new THREE.Vector3().subVectors(end, start);
             const segmentLength = direction.length();
             const dir = direction.clone().normalize();
-            setCylinderBetween(data.faint, start, end, 0.014, 0.08);
+            setCylinderBetween(data.faint, start, end, 0.08);
             clearDashGroup(data.dashGroup);
 
             const cycle = data.dashLen + data.gapLen;
@@ -3378,19 +3394,43 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
 
           let angle = -0.18;
           const clock = new THREE.Clock();
+          let animationFrame = 0;
+          let orbitVisible = false;
+          let pageVisible = !document.hidden;
+
+          const requestOrbitFrame = () => {
+            if (!animationFrame && orbitVisible && pageVisible) {
+              animationFrame = requestAnimationFrame(animate);
+            }
+          };
+
           const animate = () => {
-            requestAnimationFrame(animate);
+            animationFrame = 0;
+            if (!orbitVisible || !pageVisible) return;
             const elapsed = clock.getElapsedTime();
             angle += 0.0028;
             updateNodes(angle, elapsed);
             updateLinks(elapsed);
             renderer.render(scene, camera);
+            animationFrame = requestAnimationFrame(animate);
           };
 
           new ResizeObserver(resize).observe(container);
           resize();
+          updateNodes(angle, 0);
+          updateLinks(0);
+          renderer.render(scene, camera);
           container.classList.add("three-ready");
-          animate();
+
+          new IntersectionObserver(([entry]) => {
+            orbitVisible = entry.isIntersecting;
+            requestOrbitFrame();
+          }, { threshold: 0.08 }).observe(container);
+
+          document.addEventListener("visibilitychange", () => {
+            pageVisible = !document.hidden;
+            requestOrbitFrame();
+          });
         }
 
         setupIntersectionObserver() {
@@ -3400,6 +3440,7 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
                 const index = this.slides.indexOf(entry.target);
                 this.currentSlide = index;
                 entry.target.classList.add("visible");
+                this.slides.forEach((slide) => slide.classList.toggle("is-current", slide === entry.target));
                 this.updateDots(index);
                 this.animateCounters(entry.target);
                 this.animateRatioCounters(entry.target);
@@ -3410,7 +3451,7 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
           }, { threshold: 0.62 });
 
           this.slides.forEach((slide) => observer.observe(slide));
-          this.slides[0].classList.add("visible");
+          this.slides[0].classList.add("visible", "is-current");
           this.animateCounters(this.slides[0]);
           this.animateRatioCounters(this.slides[0]);
         }
