@@ -1349,11 +1349,9 @@
         white-space: pre;
       }
 
-      .kw { color: #ff7ab6; }
-      .fn { color: #7dd3fc; }
-      .str { color: #f7c948; }
-      .num { color: #a7f3d0; }
-      .cm { color: #6f839b; }
+      .code-row .src span {
+        font-style: inherit;
+      }
 
       .run-panel {
         min-height: clamp(21rem, 56vh, 35rem);
@@ -3108,6 +3106,7 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
           this.terminalStarted = false;
           this.codeStarted = false;
           this.runStarted = false;
+          this.highlightedCodePromise = this.prepareHighlightedCode();
           this.setupNavDots();
           this.setupIntersectionObserver();
           this.setupKeyboardNav();
@@ -3698,10 +3697,27 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
           element.classList.add("done");
         }
 
+        async prepareHighlightedCode() {
+          const sourceText = document.getElementById("mainPySource").textContent.trim();
+          try {
+            const { codeToHtml } = await import("https://esm.sh/shiki@3.0.0");
+            const highlightedHtml = await codeToHtml(sourceText, {
+              lang: "python",
+              theme: "vitesse-dark"
+            });
+            const output = document.createElement("div");
+            output.innerHTML = highlightedHtml;
+            return Array.from(output.querySelectorAll(".line"), (line) => line.innerHTML);
+          } catch (error) {
+            return [];
+          }
+        }
+
         async streamCode() {
           const element = document.querySelector("[data-code]");
           const viewport = document.querySelector("[data-code-viewport]");
           const source = document.getElementById("mainPySource").textContent.trim().split("\n");
+          const highlightedLines = await this.highlightedCodePromise;
           element.innerHTML = "";
           element.classList.remove("done");
           viewport.scrollTop = 0;
@@ -3716,7 +3732,11 @@ print("'veri_dagilimi.png' dosyası klasöre kaydedildi!")</script>
 
             const code = document.createElement("span");
             code.className = "src";
-            code.textContent = line || " ";
+            if (highlightedLines[index] !== undefined) {
+              code.innerHTML = highlightedLines[index] || "&nbsp;";
+            } else {
+              code.textContent = line || " ";
+            }
 
             row.append(number, code);
             element.appendChild(row);
